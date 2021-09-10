@@ -1,43 +1,40 @@
 'use strict';
-
+require('dotenv').config();
 const express = require('express')
 const app = express();
 const cors = require('cors');
 app.use(cors());
-// const PORT = process.env.PORT;
+const PORT = process.env.PORT;
 
 
 const weather = require('./data/weather.json')
 
-app.get('/',
-  function (request, response) {
-    response.send(weather.city_name)
-  })
+const getWeather = (request, response) => {
+  const name = request.query.city_name;
 
-app.get('/get-wethear', (request, response) => {
-  // const lat = request.query.lat;
-  // const lon = request.query.lon;
-  const city_name = request.query.city_name;
-
-  if (city_name) {
-    const returnArray = weather.filter((item) => {
-      return item.city_name === city_name;
-    });
-    const data = returnArray.data.map(item => {
+  try {
+    const result = weather.find((item) => {
+      if (item.city_name === name) {
+        return item;
+      }
+    })
+    let data = result.data.map(item => {
       return new Forcast(item);
     })
-    console.log(data);
-
-    if (returnArray.length) {
-      response.json(data);
-    } else {
-      response.send('no data found :disappointed:')
-    }
-  } else {
-    response.json(weather);
+    response.send(data);
   }
+  catch {
+    response.send('ERROR');
+  }
+}
 
-})
+app.get('/',
+  function (request, response) {
+    response.send('hello from home ')
+  })
+
+app.get('/get-wethear', getWeather);
+
 
 class Forcast {
   constructor(item) {
@@ -47,6 +44,6 @@ class Forcast {
 }
 
 // kick start the express server to work
-app.listen(3001, () => {
+app.listen(PORT, () => {
   console.log(`Server started on port`);
 });
